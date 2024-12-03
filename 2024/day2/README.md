@@ -4,7 +4,7 @@ Slightly upping the complexity, at least if you don't want to go the brute force
 
 Again reading a CSV, this time without a specified fixed amount of columns. The interesting bit is,
 that we're not so much working with the numbers, but rather their differences, so we're basically in
-for a instance of the [fencepost error](https://en.wikipedia.org/wiki/Off-by-one_error) if we get it
+for an instance of the [fencepost error](https://en.wikipedia.org/wiki/Off-by-one_error) if we get it
 wrong. Hooray, I guess...
 
 ## Task 1
