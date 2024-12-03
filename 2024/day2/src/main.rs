@@ -10,22 +10,22 @@ fn read_input() -> Vec<Vec<i32>> {
         .collect()
 }
 
-fn is_safe(report: &Vec<i32>) -> bool {
+fn find_unsafe(report: &Vec<i32>) -> Option<usize> {
     let mut last_value = report[0];
     let mut increment = 0;
     // the current increment between two values. Mainly for tracking the direction of travel of the series
-    for current_value in report.iter().skip(1) {
+    for (idx, current_value) in report.iter().enumerate().skip(1) {
         let difference = current_value - last_value;
         if increment * difference < 0 // i.e. difference & increment have different signs
             || difference.abs() < 1
             || difference.abs() > 3
         {
-            return false;
+            return Some(idx);
         }
         last_value = *current_value;
         increment = difference;
     }
-    true
+    None
 }
 
 fn task1() {
@@ -33,7 +33,7 @@ fn task1() {
     let mut safe_reports = 0;
     let mut unsafe_reports = 0;
     for report in reports.iter() {
-        if is_safe(report) {
+        if find_unsafe(report).is_none() {
             safe_reports += 1;
         } else {
             unsafe_reports += 1;
@@ -54,23 +54,29 @@ fn task2() {
     let mut unsafe_reports = 0;
     let total = reports.len();
     for report in reports.into_iter() {
-        if is_safe(&report) {
-            safe_reports += 1;
-        } else {
-            // check whether any value being left out makes it safe
-            let has_safe = 'safe_check: {
-                for ignore_idx in 0..report.len() {
-                    let mut modified_report = report.clone();
-                    modified_report.splice(ignore_idx..ignore_idx + 1, []);
-                    if is_safe(&modified_report) {
-                        safe_reports += 1; // if there's one version how to make it safe, we're good
-                        break 'safe_check true;
+        match find_unsafe(&report) {
+            Some(idx) => {
+                // got to check three cases here: removing the last item of the failed partial sequence, the one before or the one before that (to account for pattern
+                //   like  3, 2, 3, 4, 5 at the start of a pattern, which becomes valid when removing index 0, but we'll only notice the issue at position 2)
+                let has_safe = 'safe_check: {
+                    // make sure we don't actually access before the vector if the first gap is already invalie
+                    for i in 0..std::cmp::min(3, idx + 1) {
+                        // remove the potentially unsafe item  check if that makes it safe
+                        let mut modified_report = report.clone();
+                        modified_report.splice(idx - i..idx - i + 1, []);
+                        if find_unsafe(&modified_report).is_none() {
+                            safe_reports += 1;
+                            break 'safe_check true;
+                        }
                     }
+                    false
+                };
+                if !has_safe {
+                    unsafe_reports += 1;
                 }
-                false // couldn't find a safe report
-            };
-            if !has_safe {
-                unsafe_reports += 1;
+            }
+            None => {
+                safe_reports += 1;
             }
         }
     }
