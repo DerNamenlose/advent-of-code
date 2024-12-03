@@ -27,7 +27,7 @@ task 1 to make it valid again. In th end I tried 4 approaches:
 3. ...my wife proposed to just combine solutions 1. and 2. and only check the _two_ elements, that make the
    series invalid. Basically try removing either one and check whether it make a valid sequence. Works for the
    sequence in solution 1, but fails to correctly solve `[3,2,3,4,5]` (basically because it notices an issue
-   at index `2` tries to remove it, which would make `[3,2,4,5]`, still invalid, or tries index `1, making 
+   at index `2` tries to remove it, which would make `[3,2,4,5]`, still invalid, or tries index `1`, making 
    `[3,3,4,5]`, still invalid).
 4. A slight variation of solution 3: instead of checking the invalid index and _one_ back, also check _two_ back (if possible).
    This ensures, that we're catching this last corner-case. It catches all corner-cases in the given input (and I
