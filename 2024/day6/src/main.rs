@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 type Map = Vec<Vec<char>>;
 
 fn load_map() -> Map {
@@ -142,42 +144,59 @@ fn task1() {
 }
 
 fn task2() {
-    let map_orig = load_map();
+    let mut map_orig = load_map();
     let mut possible_positions = 0;
+
+    // mark all fields touched by the guard
+    let mut guard_opt = Some(get_guard_position(&map_orig));
+    loop {
+        if let Some(guard) = guard_opt {
+            if map_orig[guard.y][guard.x] != '^' {
+                map_orig[guard.y][guard.x] = 'X';
+            }
+            guard_opt = step_guard(&map_orig, guard);
+        } else {
+            break;
+        }
+    }
 
     // try out all possible positions and add some obstacle there
     for y in 0..map_orig.len() {
-        for x in 0..map_orig[y].len() {
-            let mut map = map_orig.clone();
-            let mut guard_opt = Some(get_guard_position(&map));
+        possible_positions += (0..map_orig[y].len())
+            .into_par_iter()
+            .fold(
+                || 0,
+                |sum, x| {
+                    let mut map = map_orig.clone();
+                    let mut guard_opt = Some(get_guard_position(&map));
 
-            if map[x][y] == '#' || map[x][y] == '^' {
-                continue; // no need to check here, there's already an obstacle or the guard
-            }
-            let current_element = map[x][y];
-            map[x][y] = '#';
-            let mut existing_turns = Vec::<GuardPosition>::new();
-            loop {
-                if let Some(guard) = guard_opt.as_ref() {
-                    let new_guard_pos = step_guard(&map, guard.clone());
-                    if let Some(np) = new_guard_pos.as_ref() {
-                        if np.direction != guard.direction {
-                            // we changed direction -> check whether we've changed the direction in the exact same way here before, which would mean we're in a loop
-                            if existing_turns.contains(np) {
-                                possible_positions += 1;
-                                break;
-                            } else {
-                                existing_turns.push(np.clone()); // remember the turn
+                    if map[x][y] != 'X' {
+                        return sum; // no need to check here, there's already an obstacle or the guard
+                    }
+                    map[x][y] = '#';
+                    let mut existing_turns = Vec::<GuardPosition>::new();
+                    loop {
+                        if let Some(guard) = guard_opt.as_ref() {
+                            let new_guard_pos = step_guard(&map, guard.clone());
+                            if let Some(np) = new_guard_pos.as_ref() {
+                                if np.direction != guard.direction {
+                                    // we changed direction -> check whether we've changed the direction in the exact same way here before, which would mean we're in a loop
+                                    if existing_turns.contains(np) {
+                                        return sum + 1;
+                                    } else {
+                                        existing_turns.push(np.clone()); // remember the turn
+                                    }
+                                }
                             }
+                            guard_opt = new_guard_pos;
+                        } else {
+                            break;
                         }
                     }
-                    guard_opt = new_guard_pos;
-                } else {
-                    break;
-                }
-            }
-            map[x][y] = current_element;
-        }
+                    sum
+                },
+            )
+            .sum::<u32>();
     }
 
     println!("Task 2: Possible positions: {possible_positions}");

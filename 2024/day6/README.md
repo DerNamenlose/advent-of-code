@@ -46,5 +46,7 @@ record all turns made somewhere, I just copy and save every turn step (position 
 this step is already in the list of previous turns, I've actually entered a loop and can stop. This then leads to the correct number
 of possible obstacle postions.
 
-One possible optimization would be to use the result map from task 1 to only check the positions, where the guard actually reaches,
-but the runtime of the algorithms is still in the low seconds on my laptop, so, again, not worth the effort...
+After my son challenged me to optimize the thing a bit, the program got it's pre-check to only ever simulate the guard walk for positions
+that are actually reachable on the original map and I took the chance to play with [rayon](https://github.com/rayon-rs/rayon). Initially
+the algorithm placing the potential obstacles was just two nested loops. Replacing the inner loop with a rayon parallel iterator and
+thereby distributing it to multiple CPU cores
