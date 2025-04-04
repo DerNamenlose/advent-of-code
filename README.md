@@ -8,3 +8,5 @@ too loud in case they are ridiculous.
 
 Sometimes you might found a README in the individual solution folders with some of my notes regarding the algorithm, what I like, what I don't like, what could be
 improved, if I could be bothered etc.
+
+Note: this repo has moved to https://git.geekbetrieb.de/namenlos/advent-of-code
